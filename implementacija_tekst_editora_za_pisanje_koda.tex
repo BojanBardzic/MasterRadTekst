@@ -105,101 +105,68 @@
 % ------------------------------------------------------------------------------
 \pangrami
 
-\section{Примери коришћења класичних \LaTeX{} елемената}
-% primeri citiranja
-Ово је реченица у којој се јавља цитат \cite{PetrovicMikic2015}.
-Још један цитат \cite{GuSh:243}.
-% primeri navodnika
-Испробавамо наводнике: "Рекао је да му се јавимо сутра".
-% primer referisanja na tabelu (koja se javlja kasnije)
-У табели \ref{tbl:rezultati} која следи приказани су резултати експеримента.
-% primer kraćeg latiničkog teksta
-{\lat Ovo je primer rečenice ispisane latiničkim pismom u okviru ćiriličkog dokumenta.}
-У овој реченици се налази једна {\lat reč} написана латиницом.
-% primer korišćenja fusnota
-Иза ове реченице следи фуснота.\footnote{Ово је фуснота.}
-% primer url-a
-Сајт математичког факултета је \url{http://www.matf.bg.ac.rs}.
+\section{Текст едитори}
 
-% primer dužeg latiničkog teksta
-\begin{latinica}
-  Ovo je malo duži blok teksta ispisan latiničkim pismom u okviru
-  ćiriličkog dokumenta. Fijuče vetar u šiblju, ledi pasaže i kuće iza
-  njih i gunđa u odžacima.
-\end{latinica}
+\paragraph{}
+Текст едитор је програм за измену текстуалних датотека. Најчешћи типови датотека
+који се измењују коришћењем ових програма су једноставне текстуалне датотеке, 
+датотеке које садржe изворни код, код језика за означавање као и конфигурационе датотеке. 
+Неки од најпознатијих оваквих програма су \begin{latinica}Visual Studio Code\end{latinica} \cite{VSC}, 
+\begin{latinica}Notepad\end{latinica} \cite{Notepad}, \begin{latinica}Notepad++\end{latinica} 
+\cite{Notepad++}, \begin{latinica}VIM\end{latinica} \cite{VIM} и \begin{latinica}Emacs\end{latinica} \cite{Emacs}.
 
-% primer korišćenja tabele
-\begin{table}
-\centering
-\caption{Резултати}
-\label{tbl:rezultati}
-\begin{tabular}{c>{\centering}p{2cm}c}
-\toprule
-1 & 2 & 3\\\midrule
-4 & 5 & 6\\\cmidrule(rl){1-2}
-7 & 8 & 8\\
-\bottomrule
-\end{tabular}
-\end{table}
+\paragraph{}
+Постоји више врста текст едитора. Имамо едиторе једноставног текста, где информација
+о датотеци предсавља само текст. Док такође постоје и едитори богатог текста, где
+информација о датотеци поред текста садржи и неке додатне информације везано за изглед
+текста (фонт, величина фонта, боја текста, маргине). Ми ћемо се у овом раду бавити искључиво
+едиторима једноставног текста.
 
-% primer korišćenja slike
+\section{Структуре података у текст едиторима}
+\paragraph{}
+Пошто текст у датотеци можемо посматрати као линеарни низ карактера, 
+тако и сваку измену над тим текстом можемо посматрати као додавање текста у
+неки део низа или брисање подниза текста. Када бисмо сав текст једне датотеке
+које смо отворили чували као један низ карактера, видели бисмо да су горе наведене 
+операције јако временски скупе (линеарне сложености) и да њихово стално извршавање
+над неким великим текстом би имало за последицу изузетну неефикасност текст едитора.
+Да би се овај проблем превазишао измишљене су разне структуре података које ове операције
+врше ефикасније. Најпознатије овакве структуре су бафер са размацима 
+(енг. \begin{latinica}gap buffer\end{latinica}), уже (енг. \begin{latinica}rope\end{latinica}) 
+и табела делова (енг. \begin{latinica}piece table\end{latinica}).
+
+\subsection{Бафер са размацима}
+\paragraph{}
+Бафер са размацима (енг. \begin{latinica}gap buffer\end{latinica}) је једноставна структура
+података која се заснива на једноставној идеји да постоји један линеаран низ чија је средина
+"празна", док се са леве и десне стране налази текст. Како ми вршимо измене над неким делом 
+текста тако се средина "помера" превлачењем последњег елемента леве стране на почетак десне
+или обрнуто. Када се бафер попуни (размак није довољно велики за нову операцију), тада се 
+алоцира нови бафер већих димензија, најчешће дупло већи, и у њега се копира текст из старог
+бафера.
+\paragraph{}
+Што се тиче ефикасности ове структуре, у односу на класичан низ, бафер са размацима је доста 
+ефикаснији јер немамо нову реалокацију низа при свакој измени. Ефикасност уметања и 
+брисања зависи највише од тога колики је размак између индекса на коме желимо да 
+извршимо измену текста и леве или десне границе размака. Ако је размак већ на потребној позицији, 
+временска сложеност је константна. Међутим, ако је размак на једном крају а ми желимо да 
+мењамо други крај текста сложеност ће бити линеарна. У просечном случају временска 
+сложеност је константна, јер најчешће пишемо карактере један за другим. 
+Једина операција која је преостала је алоцирање новог низа, која је линеарне сложености.
+
+\paragraph{}
+Ова структура је једноставна за имплементацију и често се користи за једноставне текстуалне
+уносе. Познати текст едитор \begin{latinica}Emacs\end{latinica} \cite{Emacs} користи 
+ову структуру у својој имплементацији. На слици \ref{fig:gap_buffer} приказана је илустрација
+рада бафера.
+
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=0.5\textwidth]{images/graph.png}
-  \caption{Графикон}
-  \label{fig:grafikon}
+  \includegraphics[width=1.0\textwidth]{images/gap_buffer.png}
+  \caption{Илустрација бафера са размаком}
+  \label{fig:gap_buffer}
 \end{figure}
 
-% primer jednostavnije matematičke formule
-Ево и један пример математичке формуле: $e^{i\pi} + 1 = 0$. 
-% primer referisanja na sliku
-На слици \ref{fig:grafikon} приказан је један графикон.
-
-% primer kompleksnije matematičke formule
-$$
-\int_a^b f(x)\ \mathrm{d}x \ =_{def}\ \lim_{\max{\Delta x_k \rightarrow 0}} \sum_{k=1}^n f(x_k^*)\Delta x_k
-$$
-
-% primer referisanja na poglavlja i strane poglavlja
-Више детаља биће дато у глави \ref{chp:razrada} на страни \pageref{chp:razrada}.
-
-% primer listinga koda
-
-У тезу можемо убацити и програмски кôд.
-
-\begin{verbatim}
-Ovo je doslovni tekst.
-\end{verbatim}
-
-\begin{latinica}
-\lstset{
-  language=C,
-  basicstyle=\ttfamily,
-  keywordstyle=\color{blue}
-}
-\begin{lstlisting}
-#include <stdio.h>
-
-int main() {
-   printf("Hello, world!\n");
-   return 0;
-}
-\end{lstlisting}
-\end{latinica}
-
-
-Овај C програм се може превести помоћу преводиоца GCC \cite{gcc}.
-
-% primer liste
-Можемо правити и набрајања:
-\begin{enumerate}
-\item Анализа 1
-\item Линеарна алгебра
-\item Аналитичка геометрија
-\item Основи програмирања
-\end{enumerate}
-
-\pangrami
 
 % ------------------------------------------------------------------------------
 \chapter{Разрада}
