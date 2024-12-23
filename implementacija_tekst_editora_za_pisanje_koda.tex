@@ -665,9 +665,12 @@ private:
 Уколико је селекција активна и корисник кликне било где на текстуално поље едитора,
 онда се она деактивира. Такође се може деактивирати притиском на стрелице за померање
 курсора. При притиску на тастере за брисање док постоји активна селекција, сав текст
-унутар ње се брише. Исто важи и за операције копирања 
-(енг. \begin{latinica}\textit{copy}\end{latinica}) и сечења.
-(енг. \begin{latinica}\textit{cut}\end{latinica}).
+унутар ње се брише. Исто важи и за операције сечења.
+(енг. \begin{latinica}\textit{cut}\end{latinica}) и налепљивања
+(енг. \begin{latinica}\textit{paste}\end{latinica}). Деактивирање селекције
+се имплементира тако што се чланска променљива 
+\begin{latinica}\textit{m\_active}\end{latinica} постави на вредност
+\begin{latinica}\textit{false}\end{latinica}.
 
 \paragraph{}
 Притиском на комбинацију тастера \begin{latinica}\textit{Shift}\end{latinica} и
@@ -676,9 +679,152 @@ private:
 \begin{latinica}\textit{Shift}\end{latinica} и \begin{latinica}\textit{End}\end{latinica}
 почетак селекције поставља на позицију курсора, а крај на последњу колону у реду.
 Тастери \begin{latinica}\textit{Ctrl}\end{latinica} и
-\begin{latinica}\textit{A}\end{latinica} селектују читав текст.
+\begin{latinica}\textit{A}\end{latinica} селектују читав текст. На слици 
+\ref{fig:selection} се може видети пример селекције, где је означени део текста
+обојен другачијом бојом.
 
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/selection.png}
+	\caption{Приказ селекције у текст едитору}
+	\label{fig:selection}
+\end{figure}
 
+\section{Управљање текстуалним датотекама}
+\paragraph{}
+Сврха текст едитора јесте мењање текстуалних датотека. Да би то било могуће,
+потребно је обезбедити кориснику могућности креирања нових датотека, као и
+отварање постојећих. Такође је потребно омогућити чување измена које корисник
+прави као и могућност избора локације где ће датотека бити сачувана.  У наредним
+пододељцима ћемо прећи кроз те функционалности. 
+
+\subsection{Чување датотека}
+\paragraph{}
+Корисник може сачувати тренутни садржај едитора у датотеку притиском на дугме 
+\begin{latinica}\textit{Save}\end{latinica} у менију или комбинацијом
+тастера \begin{latinica}\textit{Ctrl}\end{latinica} и
+\begin{latinica}\textit{S}\end{latinica}. Тренутни садржај се чува на 
+жељену локацију и уколико није дефинисана, тражи се од корисника
+да је унесе. Такође је дозвољено и чување тренутне датотеке на нову локацију
+притиском на дугме \begin{latinica}\textit{Save as}\end{latinica} у менију, где
+је поступак исти као са недефинисаном путањом.
+
+\paragraph{}
+Чување у имплементацији при раду извршава метода
+\begin{latinica}\textit{save()}\end{latinica} класе
+\begin{latinica}\textit{TextEditor}\end{latinica} и може се видети у наредном
+примеру кода.
+
+\begin{minted}{c++}
+void TextEditor::save() {
+	if (m_activeTextBox->getFile() == nullptr)
+		saveAs();
+	else {
+		m_activeTextBox->save();
+		m_inactiveTextBox->save();
+	}
+}
+\end{minted}
+
+\paragraph{}
+За недефинисану путању позива се метода
+\begin{latinica}\textit{saveAs()}\end{latinica}, док се у супротном
+зове метода \begin{latinica}\textit{save()}\end{latinica} класе
+\begin{latinica}\textit{TextBox}\end{latinica} која уписује садржај
+едитора преко старог садржаја датотеке на задатој путањи. На селедећем
+примеру се може видети метода \begin{latinica}\textit{saveAs()}\end{latinica}.
+
+\begin{minted}{c++}
+void TextEditor::saveAs() {
+	auto path = saveFileDialog();
+	
+	if (!path.empty()) {
+		if (path.find_last_of('.') == std::string::npos)
+		path += ".txt";
+		m_activeTextBox->saveAs(path);
+		m_inactiveTextBox->saveAs(path);
+	}
+}
+\end{minted}
+
+\paragraph{}
+Она отвара дијалог где корисник треба да изабере локацију где ће бити сачувана
+датотека и враћа путању. Уколико није дефинисана екстензија датотеке биће
+постављена на обичну текстуалну датотеку. Затим се позива истоимена метода
+класе \begin{latinica}\textit{TextBox}\end{latinica} која поставља нову путању
+и уписује садржај едитора на дату локацију.
+
+\paragraph{}
+Да би се водила евиденција о изменама у тренутној датотеци користи
+се индикатор који се назива прљави бит (енг \begin{latinica}\textit{dirty bit}\end{latinica}). Он се активира уколико имамо неке измене које нисмо сачували. Када корисник отвара датотеку, прљави бит је неактиван.
+Сваком променом текста активира се прљави бит, док се сваким
+чувањем деактивира. Он је обично представљен карактером звездице поред
+имена датотеке која је отворена.
+
+\subsection{Отварање нове датотеке}
+\paragraph{}
+Корисник може отворити нову датотеку на дугме 
+\begin{latinica}\textit{New file}\end{latinica} у менију или комбинацијом тастера
+\begin{latinica}\textit{Ctrl}\end{latinica} и
+\begin{latinica}\textit{N}\end{latinica}. Када корисник покрене ову акцију,
+тренутни фајл се затвара и уколико је активан прљави бит, едитор отвара
+дијалог где корисника пита да ли жели да сачува измене. Затим се садржај
+текстуалног поља као и табеле делова се ресетује и курсор се поставља на почетак.
+
+\paragraph{}
+У имплементацији при раду за ову функционалност задужена је метода
+\begin{latinica}\textit{newFile()}\end{latinica} класе
+\begin{latinica}\textit{TextEditor}\end{latinica}. Она проверава да ли је фајл
+сачуван и позива методу
+\begin{latinica}\textit{handleFileNotSaved()}\end{latinica} 
+уколико није. Затим позива истоимену методу класе \begin{latinica}\textit{TextBox}\end{latinica} која ресетује свој садржај.
+У наредном примеру кода се може видети описана метода.
+
+\begin{minted}{c++}
+void TextEditor::newFile() {
+	auto id = handleFileNotSaved();
+	if (id == IDCANCEL)
+	return;
+	
+	m_activeTextBox->newFile();
+	if (m_splitScreen)
+	m_inactiveTextBox->setFile(m_activeTextBox->getFile());
+}
+\end{minted}
+
+\subsection{Отварање постојеће датотеке}
+\paragraph{}
+Уколико корисник жели да отвори постојећу датотеку он може то учинити притиском
+на дугме \begin{latinica}\textit{Open}\end{latinica} у менију или комбинацијом
+тастера \begin{latinica}\textit{Ctrl}\end{latinica} и \begin{latinica}\textit{O}\end{latinica}. Када покрене ову команду, корисник
+бира датотеку коју жели, и она се отвара у тескст едтиору. Ову функционалност
+имплементира метода \begin{latinica}\textit{open()}\end{latinica} класе
+\begin{latinica}\textit{TextEditor}\end{latinica}. Она је приказана
+на следећем примеру кода.
+
+\begin{minted}{c++}
+void TextEditor::open() {
+	auto id = handleFileNotSaved();
+	if (id == IDCANCEL)
+	return;
+	
+	auto path = openFileDialog();
+	
+	if (!path.empty()) {
+		m_activeTextBox->open(path);
+		m_inactiveTextBox->open(path);
+	}
+}
+\end{minted}
+
+\paragraph{}
+Прво се проверава прљави бит, и уколико је активан отвара дијалог за чување помоћу
+функције \begin{latinica}\textit{handleFileNotSaved()}\end{latinica}. Затим се 
+отвара дијалог за избор датотеке помоћу функције
+\begin{latinica}\textit{openFileDialog()}\end{latinica}  и враћа се изабрана
+путања. На крају се позива истоимена меотда класе
+\begin{latinica}\textit{TextBox}\end{latinica} и отвара се датотека и њен садржај
+се учитава у едитор.
 
 % ------------------------------------------------------------------------------
 
