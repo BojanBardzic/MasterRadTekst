@@ -1092,6 +1092,58 @@ void PieceTable::redo() {
 \end{minted}
 
 \paragraph{}
+Када се користи ова функционалност у текст едиторима може се приметити да 
+враћање уназад и унапред обично враћају целе делове текста, а не појединачне
+карактере. Таква имплементација је интуитивна из угла корисника јер је најчешће
+потребно поништити веће делове текста уместо један карактер.
+
+\paragraph{}
+Овакав ефекат се постиже тако што се уводе два бафера, један за уметање и један
+за брисање. Бафер за уметање садржи све карактере који су тренутно унесени у 
+непрекидном низу. Када се низ прекине, било уносом који се не наставља на тренутни
+низ, било брисањем неког дела текста, бафер се празни и цео његов садржај се уноси
+у табелу делова и акција се ставља на стек за враћање уназад. 
+Бафер за брисање ради по истом принципу као и онај за уметање, само се код њега
+чува почетни и крајњи индекс обрисаног дела текста.
+
+\paragraph{}
+Све време када бафери нису празни, табела делова даје привид да су све досадашње
+измене унете у њу, док се у позадини оне тек уносе по пражњењу бафера. У надредна
+два примера кода илустровано је редом: чланске променљиве класе \begin{latinica}
+\textit{InsertBuffer}\end{latinica}, уношење појединачног карактера у текст.
+
+\begin{minted}{c++}
+class InsertBuffer {
+	//...
+	private:
+	bool m_flushed;
+	size_t m_startIndex;
+	size_t m_endIndex;
+	std::string m_content;
+};
+\end{minted}
+
+\begin{minted}{c++}
+bool PieceTable::insertChar(char c, size_t index) {
+	if (index != m_insertBuffer->getEndIndex()) {
+		flushInsertBuffer();
+	}
+	
+	bool result = false;
+	
+	if (m_insertBuffer->isFlushed()) {
+		m_insertBuffer->setStartIndex(index);
+		m_insertBuffer->setEndIndex(index);
+		m_insertBuffer->setFlushed(false);
+		result = true;
+	}
+	
+	m_insertBuffer->appendToContent(c);
+	return  result;
+}
+\end{minted}
+
+\paragraph{}
 За крај треба напоменути да је овакву имплементацију враћања уназад и унапред
 омогућено коришћењем табеле делова. Пошто се текст не брише из бафера могуће
 је једноставније враћање обрисаних делова текста. Имплементација помоћу других
@@ -1108,7 +1160,30 @@ void PieceTable::redo() {
 У имплементацији при раду токени који се назначавају су кључне речи, ниске, бројеви, претпроцесорске директиве и коментари (једнолинијски и вишелинијски).
 Подржани програмски језици за назначавање су
 \begin{latinica}\textit{C++}\end{latinica}, \begin{latinica}\textit{C}\end{latinica},
-\begin{latinica}\textit{C\#}\end{latinica} и \begin{latinica}\textit{Java}\end{latinica}.
+\begin{latinica}\textit{C\#}\end{latinica} и \begin{latinica}\textit{Java}\end{latinica}. За сваки језик се чувају
+информације о њему као што су да ли има претпроцесорске директиве, како
+се отварају једнолинијски коментари, како се отварају и затварају вишелинијски
+коментари и скуп кључних речи.У наредном примеру кода илустроване су те
+информације у класи \begin{latinica}\textit{Language}\end{latinica}.
+
+\begin{minted}{c++}
+class Language {
+//...
+private:
+	std::set<std::string> m_keywords;
+	std::string m_singleLineCommentStart;
+	std::string m_multiLineCommentStart;
+	std::string m_multiLineCommentEnd;
+	std::string m_name;
+	bool m_preprocessor;
+};
+\end{minted}
+
+\paragraph{}
+Такође се чува информација о томе за који програмски језик је укључено
+назначавање. Он се одређује на основу екстензије отвореног фајла, уколико
+екстензија није подржана поставља се мод за обичан текст који не примењује
+никакво назначавање.
 
 \paragraph{}
 Ова функционалност се реализује тако што чувамо за сваки карактер у тексту његову тренутну боју. Чува се дводимензиона листа где \(j\)-ти елемент \(i\)-те
@@ -1141,7 +1216,26 @@ const std::regex TextHighlighter::m_stringRegex = std::regex(
 сваки токен се проверава да ли је симбол, уколико јесте проверава се да ли је 
 садржан у скупу кључних речи. Ако је и овај услов испуњен, токен се означава 
 као кључна реч. У супротном се проверава да ли је токен број и уколико јесте
-назначава се правилном бојом.
+назначава се правилном бојом. У наредном примеру кода илустрована је функција
+која у једној линији тражи све горенаведене токене и враћа исправно обојену
+мапу за ту линију.
+
+\begin{minted}{c++}
+std::vector<ThemeColor> TextHighlighter::getColorMap
+	(std::string& line, LanguageMode mode) {
+		
+	std::vector<ThemeColor> colorMap(line.size(), ThemeColor::TextColor);
+	
+	if (LanguageManager::getLanguage(mode)->isPreprocessor())
+	searchForPreprocessorCommands(line, colorMap);
+	
+	searchRegex(line, colorMap, m_stringRegex, ThemeColor::StringColor);
+	searchForSingleLineComment(line, colorMap, mode);
+	searchForKeywordsAndNumbers(line, colorMap, mode);
+	
+	return colorMap;
+}
+\end{minted}
 
 \paragraph{}
 На крају се траже вишелинијски коментари. У свакој линији се тражи отварајућа
@@ -1169,6 +1263,67 @@ const std::regex TextHighlighter::m_stringRegex = std::regex(
 	\label{fig:text_highlighting}
 \end{figure}
 
+
+\section{Правоугаоно означавање}
+
+\paragraph{}
+У општем случају, означени текст представља непрекидни део текста
+између почетне и крајње координате. Међутим, правоугаоно означавање
+омогућава да се изабере само онај текст који је унутар правоугаоника
+који чине почетна и крајња координата. 
+
+\paragraph{}
+То се постиже тако што се додаје индикатор који нам говори да ли
+је означавање обично или је правоугаоно. При дохватању означеног
+текста, прво проверава вредност индикатора. Уколико се ради о обичном
+означавању, две координате се преводе у индексе и дохвата се текст између
+њих. Уколико је се ради о правоугаоном означавању, онда се за сваку линију
+почевши од линије почетне координате па до крајње, дохвата текст између колона
+почетне и крајње координате. У наредном програмском коду је илустрована ова
+функционалност.
+
+\begin{minted}{c++}
+std::string Selection::getSelectionText() {
+	std::string result;
+	TextCoordinates it = m_start.getCoords();
+	
+	// Dohvata se pokazivač na početnu liniju
+	std::string* line = &m_lineBuffer->lineAt(it.m_row-1);
+	
+	// Iteriranje dok se ne stigne do kraja selekcije
+	while (it < m_end.getCoords()) {
+		// Ako je kolona van granica, ide se na narednu liniju
+		if (it.m_col > line->size() 
+		|| (m_rectangular && it.m_col >= m_end.getCoords().m_col)) {
+			result += '\n';
+			it.m_row += 1;
+			it.m_col = m_rectangular ? m_start.getCoords().m_col : 1;
+			
+			line = &m_lineBuffer->lineAt(it.m_row-1);
+		} else {
+			if (!line->empty())
+			result.push_back(line->at(it.m_col-1));
+			
+			it.m_col += 1;
+		}
+	}
+	
+	return result;
+}
+\end{minted}
+
+\paragraph{}
+Ова функционалност омогућава једноставно дохватање испрекиданих делова
+текста као што су колоне у текстуалним табелама као и делове кода без дохватања
+карактера за назубљивање. На слици \ref{fig:rectangular_selection} илустровано
+је правоугаоно означавање где је означен унутрашњи део звездица.
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=1.0\textwidth]{images/rectangular_selection.png}
+	\caption{Приказ правоугаоног означавања}
+	\label{fig:rectangular_selection}
+\end{figure}
 % ------------------------------------------------------------------------------
 % Literatura
 % ------------------------------------------------------------------------------
