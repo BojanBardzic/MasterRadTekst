@@ -259,6 +259,15 @@
 тако и при њеној имплементацији. Поред тога, заузима више меморије него обичан низ
 карактера (због потребе за чувањем унутрашњих чворова стабла). Пример текст едитора који
 користи уже у својој имплементацији је \begin{latinica}\textit{Xi}\end{latinica} \cite{Xi}.
+На слици \ref{fig:rope_example} приказан је пример ужета који садржи текст 
+\textit{"Ово је пример ужета"}.
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=0.7\textwidth]{images/rope_example.png}
+	\caption{Пример једног ужета}
+	\label{fig:rope_example}
+\end{figure}
 
 \subsection{Претрага}
 \paragraph{}
@@ -277,15 +286,15 @@
 \end{figure}
 
 \paragraph{}
-Нека је потребно одредити карактер текста на индексу 10. Прво се обилази корен 
+Нека је код ужета које садржи текст \textit{"Ово је претрага ужетом"} потребно дохватити карактер текста на индексу 10 тј. карактер \textit{"т"}. Прво се обилази корен 
 који садржи дужину укупног текста, пошто је тражени индекс мањи од вредности у тренутном
 чвору иде се у његово лево подстабло. Следећи чвор садржи вредност 9, што значи да је
 тражени индекс већи од вредности. Одузима се та вредност од траженог индекса и претрага се
 наставља у десном подстаблу тренутног чвора. Сада је тражени индекс 1 и он се поново
 упоређује са тренутним чвором. Пошто је 1 мање од 6 прелази се у лево подстабло. 
 У следећем чвору вредност је 2 па се поново иде у лево подстабло. На крају се наилази на
-лист и у нисци коју он садржи се дохвата карактер на индексу 1 и прослеђује се као
-повратна вредност.
+лист који садржи ниску \textit{"ет"} и дохвата се карактер на индексу 1 тј. \textit{"т"},
+што је исправна вредност.
 
 \paragraph{}
 Пре него што буде обрађена операција брисања, прво ће бити уведене две нове операције које ће бити потребне за њену реализацију. Прва операција је надовезивање једног ужета на друго,
@@ -572,8 +581,8 @@ private:
 би се кодирале додатне команде. Ово се постиже притиском на два или три тастера истовремено. Најчешће се врши комбиновање два тастера, где је први обично \begin{latinica}\textit{Ctrl}\end{latinica}.
 
 \paragraph{}
-У имплементацији при раду, обраду ових уноса врши корисничка метода \begin{latinica}\textit{handleKeyboardInput()}\end{latinica} класе
-\begin{latinica}\textit{TextEditor}\end{latinica}.
+У имплементацији при раду, обраду ових уноса врши корисничка метода \begin{latinica}\verb|handleKeyboardInput()|\end{latinica} класе
+\begin{latinica}\verb|TextEditor|\end{latinica}.
  тако што се стално проверава да ли
 је притиснут један или више тастера у датом тренутку и да ли је том комбинацијом 
 задата нека специјална команда. Уколико јесте, извршава се одговарајућа команда. Ако
@@ -592,8 +601,8 @@ private:
 
 \paragraph{}
 Имлементација је сложенија него код обраде уноса са тастатуре. Метода
-\begin{latinica}\textit{handleMouseInput()}\end{latinica}
-класе \begin{latinica}\textit{TextEditor}\end{latinica} обрађује све догађаје
+\begin{latinica}\verb|handleMouseInput()|\end{latinica}
+класе \begin{latinica}\verb|TextEditor|\end{latinica} обрађује све догађаје
 миша. Она се позива периодично и врши проверу да ли је корисник притиснуо леви тастер на мишу, уколико јесте активира се одговарајућа
 команда и прослеђује се позиција миша. Такође се проверава да ли је корисник држао
 леви тастер и уколико јесте, активира одговарајућу методу и шаље две позиције миша,
@@ -607,7 +616,7 @@ private:
 виду уређеног пара реда и колоне на којој се курсор налази. Иако су у овом раду до сада
 измене представљане помоћу индекса неког низа карактера, оваква репрезентација је
 интуитивнија и прегледнија за корисника. Оваква репрезентација се користи и
-у класи \begin{latinica}\textit{TextCoordinates}\end{latinica} текст едитора.
+у класи \begin{latinica}\verb|TextCoordinates|\end{latinica} текст едитора.
 
 \begin{minted}{c++}
 class TextCoordinates {
@@ -667,7 +676,7 @@ public:
 \paragraph{}
 Унос се имплементира тако што се дохвате координате курсора и прослеђују се 
 функцији
-\begin{latinica}\textit{textCoordinatesToBufferIndex(TextCoordinates coords)}\end{latinica} 
+\begin{latinica}\verb|textCoordinatesToBufferIndex(TextCoordinates coords)|\end{latinica} 
 која преводи уређени пар врсте и колоне у индекс низа карактера. То се постиже на
 следећи начин, индекс се на почетку има вредност 0. Пролази се кроз све редове
 изнад тренутног, почевши од првог, и на бројач се додаје \(d+1\) (додаје се један да би се урачунао и знак за нови ред), где је \(d\) дужина тог реда. 
@@ -692,8 +701,8 @@ size_t LineBuffer::textCoordinatesToBufferIndex
 \paragraph{}
 Када је добијен индекс низа карактера, он се прослеђује табели делова заједно са  притиснутим карактером и врши се унос и курсор се помера за једно место у десно. 
 На примеру функције 
-\begin{latinica}\textit{insertCharToPieceTable}\end{latinica} која припада класи
-\begin{latinica}\textit{TextBox}\end{latinica} се може видети поступак уметања
+\begin{latinica}\verb|insertCharToPieceTable|\end{latinica} која припада класи
+\begin{latinica}\verb|TextBox|\end{latinica} се може видети поступак уметања
 карактера у табелу делова.
 
 \begin{minted}{c++}
@@ -719,9 +728,9 @@ bool TextBox::insertCharToPieceTable(char c) {
 \paragraph{}
 Текст едитор који је имплементиран током рада на овој тези користи две одвојене
 методе за обе врсте брисања. То су 
-\begin{latinica}\textit{backspace()} \end{latinica} и
-\begin{latinica}\textit{deleteChar()} \end{latinica} класе
-\begin{latinica}\textit{TextBox} \end{latinica}.
+\begin{latinica}\verb|backspace()| \end{latinica} и
+\begin{latinica}\verb|deleteChar()| \end{latinica} класе
+\begin{latinica}\verb|TextBox| \end{latinica}.
 
 \section{Означавање текста}
 \paragraph{}
@@ -770,9 +779,9 @@ private:
 
 
 \paragraph{}
-Када метода \begin{latinica}\textit{handleMouseInput()}\end{latinica} детектује држање
-левог тастера, она прослеђује две позиције миша методи \begin{latinica}\textit{setMouseSelection()}\end{latinica} класе
-\begin{latinica}\textit{TextBox}\end{latinica}. Онда она на основу те две позиције
+Када метода \begin{latinica}\verb|handleMouseInput()|\end{latinica} детектује држање
+левог тастера, она прослеђује две позиције миша методи \begin{latinica}\verb|setMouseSelection()|\end{latinica} класе
+\begin{latinica}\verb|TextBox|\end{latinica}. Онда она на основу те две позиције
 рачуна на које текстуалне координате оне показују и додељује мању од вредности координати
 која означава почетак, а већу координати која означава крај. 
 На крају се означени текст обележава као активан.
@@ -785,8 +794,8 @@ private:
 (енг. \begin{latinica}\textit{cut}\end{latinica}) и налепљивања
 (енг. \begin{latinica}\textit{paste}\end{latinica}). Деактивирање озанченог текста
 се имплементира тако што се чланска променљива 
-\begin{latinica}\textit{m\_active}\end{latinica} постави на вредност
-\begin{latinica}\textit{false}\end{latinica}.
+\begin{latinica}\verb|m_active|\end{latinica} постави на вредност
+\begin{latinica}\verb|false|\end{latinica}.
 
 \paragraph{}
 Притиском на комбинацију тастера \begin{latinica}\textit{Shift}\end{latinica} и
@@ -827,8 +836,8 @@ private:
 
 \paragraph{}
 Чување датотека у имплементацији при раду извршава метода
-\begin{latinica}\textit{save()}\end{latinica} класе
-\begin{latinica}\textit{TextEditor}\end{latinica} и може се видети у наредном
+\begin{latinica}\verb|save()|\end{latinica} класе
+\begin{latinica}\verb|TextEditor|\end{latinica} и може се видети у наредном
 програмском коду.
 
 \begin{minted}{c++}
@@ -844,11 +853,11 @@ void TextEditor::save() {
 
 \paragraph{}
 За недефинисану путању позива се метода
-\begin{latinica}\textit{saveAs()}\end{latinica}, док се у супротном
-зове метода \begin{latinica}\textit{save()}\end{latinica} класе
+\begin{latinica}\verb|saveAs()|\end{latinica}, док се у супротном
+зове метода \begin{latinica}\verb|save()|\end{latinica} класе
 \begin{latinica}\textit{TextBox}\end{latinica} која уписује садржај
 едитора преко старог садржаја датотеке на задатој путањи. Следећи програмски к\^{о}д
-илуструје методу \begin{latinica}\textit{saveAs()}\end{latinica}.
+илуструје методу \begin{latinica}\verb|saveAs()|\end{latinica}.
 
 \begin{minted}{c++}
 void TextEditor::saveAs() {
@@ -868,7 +877,7 @@ void TextEditor::saveAs() {
 датотека и враћа путању. Уколико није дефинисана, екстензија 
 (енг. \begin{latinica}\textit{extension}\end{latinica}) датотеке биће
 постављена на обичну текстуалну датотеку (\begin{latinica}\textit{.txt}\end{latinica}).
-Затим се позива истоимена метода класе \begin{latinica}\textit{TextBox}\end{latinica} која
+Затим се позива истоимена метода класе \begin{latinica}\verb|TextBox|\end{latinica} која
 поставља нову путању и уписује садржај едитора на дату локацију.
 
 \paragraph{}
@@ -891,11 +900,11 @@ void TextEditor::saveAs() {
 
 \paragraph{}
 У имплементацији при раду за ову функционалност задужена је метода
-\begin{latinica}\textit{newFile()}\end{latinica} класе
-\begin{latinica}\textit{TextEditor}\end{latinica}. Она проверава да ли је фајл
+\begin{latinica}\verb|newFile()|\end{latinica} класе
+\begin{latinica}\verb|TextEditor|\end{latinica}. Она проверава да ли је фајл
 сачуван и позива методу
-\begin{latinica}\textit{handleFileNotSaved()}\end{latinica} 
-уколико није. Затим позива истоимену методу класе \begin{latinica}\textit{TextBox}\end{latinica} која ресетује свој садржај.
+\begin{latinica}\verb|handleFileNotSaved()|\end{latinica} 
+уколико није. Затим позива истоимену методу класе \begin{latinica}\verb|TextBox|\end{latinica} која ресетује свој садржај.
 У наредном примеру кода се може видети описана метода.
 
 \begin{minted}{c++}
@@ -916,8 +925,8 @@ void TextEditor::newFile() {
 на дугме \begin{latinica}\textit{Open}\end{latinica} у менију или комбинацијом
 тастера \begin{latinica}\textit{Ctrl}\end{latinica} и \begin{latinica}\textit{O}\end{latinica}. Када покрене ову команду, корисник
 бира датотеку коју жели и она се отвара у тескст едтиору. Ову функционалност
-имплементира метода \begin{latinica}\textit{open()}\end{latinica} класе
-\begin{latinica}\textit{TextEditor}\end{latinica}. Она је приказана
+имплементира метода \begin{latinica}\verb|open()|\end{latinica} класе
+\begin{latinica}\verb|TextEditor|\end{latinica}. Она је приказана
 на следећем примеру кода.
 
 \begin{minted}{c++}
@@ -937,11 +946,11 @@ void TextEditor::open() {
 
 \paragraph{}
 Прво се проверава прљави бит, и уколико је активан отвара дијалог за чување помоћу
-функције \begin{latinica}\textit{handleFileNotSaved()}\end{latinica}. Затим се 
+функције \begin{latinica}\verb|handleFileNotSaved()|\end{latinica}. Затим се 
 отвара дијалог за избор датотеке помоћу функције
-\begin{latinica}\textit{openFileDialog()}\end{latinica}  и враћа се изабрана
+\begin{latinica}\verb|openFileDialog()|\end{latinica}  и враћа се изабрана
 путања. На крају се позива истоимена меотда класе
-\begin{latinica}\textit{TextBox}\end{latinica} и отвара се датотека и њен садржај
+\begin{latinica}\verb|TextBox|\end{latinica} и отвара се датотека и њен садржај
 се учитава у едитор.
 
 \section{Исецање, Копирање и налепљивање}
@@ -980,7 +989,7 @@ void TextBox::cut() {
 \paragraph{}
 Прво се проверава да ли је неки текст означен, ако јесте копира се њен садржај у
 таблу, и затим се брише означени текст. У следећем к\^{о}ду дата је имплеметнација
-методе \begin{latinica}\textit{copySelectionToClipboard()}\end{latinica}.
+методе \begin{latinica}\verb|copySelectionToClipboard()|\end{latinica}.
 
 \begin{minted}{c++}
 void TextBox::copySelectionToClipboard() {
@@ -1042,7 +1051,7 @@ void TextBox::paste() {
 на коме почиње измена и низа дескриптора промене. Овај низ садржи редом, 
 с лева  на десно, дескрипторе делова који заједно чине додати или обрисани текст.
 У следећем програмском коду илустроване су чланске променљиве класе 
-\begin{latinica}\textit{ActionDescriptor}\end{latinica}.
+\begin{latinica}\verb|ActionDescriptor|\end{latinica}.
 
 \begin{minted}{c++}
 class ActionDescriptor {
@@ -1174,7 +1183,7 @@ void PieceTable::redo() {
 Све време када бафери нису празни, табела делова даје привид да су све досадашње
 измене унете у њу, док се у позадини оне тек уносе по пражњењу бафера. У надредна
 два примера кода илустровано је редом: чланске променљиве класе \begin{latinica}
-\textit{InsertBuffer}\end{latinica}, уношење појединачног карактера у текст.
+\verb|InsertBuffer|\end{latinica}, уношење појединачног карактера у текст.
 
 \begin{minted}{c++}
 class InsertBuffer {
@@ -1228,7 +1237,7 @@ bool PieceTable::insertChar(char c, size_t index) {
 информације о њему као што су да ли има претпроцесорске директиве, како
 се отварају једнолинијски коментари, како се отварају и затварају вишелинијски
 коментари и скуп кључних речи.У наредном примеру кода илустроване су те
-информације у класи \begin{latinica}\textit{Language}\end{latinica}.
+информације у класи \begin{latinica}\verb|Language|\end{latinica}.
 
 \begin{minted}{c++}
 class Language {
@@ -1260,7 +1269,7 @@ private:
 \textit{\#} и уколико је услов испуњен цела линија се назначава одговарајућом бојом.
 
 \paragraph{}
-За једнолинијске коментаре у свакој линији се тражи ниска \textit{//} и уколико
+За једнолинијске коментаре у свакој линији се тражи ниска \verb|//| и уколико
 је пронађена, она и сав текст десно од ње у линији назначава се бојом за
 коментаре.
 
@@ -1303,8 +1312,8 @@ std::vector<ThemeColor> TextHighlighter::getColorMap
 
 \paragraph{}
 На крају се траже вишелинијски коментари. У свакој линији се тражи отварајућа
-ознака која је једнака нисци \textit{/*} и када се наиђе на њу пролази се кроз
-текст док се не пронађе затварајућа ознака која је једнака нисци \textit{*/}.
+ознака која је једнака нисци \verb|/*| и када се наиђе на њу пролази се кроз
+текст док се не пронађе затварајућа ознака која је једнака нисци \verb|*/|.
 Тада се обе ознаке и текст између њих боје у одговарајућу боју и потом се поново
 понавља процес тражења отварајуће ознаке. Уколико се при проналажењу неке отварајуће
 ознаке не пронађе затварајућа онда се текст боји од почетка отварања коментара па до краја самог текста.
@@ -1401,7 +1410,7 @@ std::string Selection::getSelectionText() {
 
 \paragraph{}
 У имплементацији при раду је ова функционалност остварена тако што
-се цртају два објекта класе \begin{latinica}\textit{TextBox}\end{latinica}
+се цртају два објекта класе \begin{latinica}\verb|TextBox|\end{latinica}
 који деле показивач на исту табелу делова. Осим табеле, све између
 два текстуална поља је одвојено.
 На слици \ref{fig:split_screen} је илустровано дељење екрана за једну
